@@ -1,0 +1,87 @@
+# ─── Зависимости ───
+node_modules/
+tmp/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── Секреты / окружение ───
+.env
+.env.local
+.env.*.local
+config.json
+.claude/
+.vscode/
+.idea/
+
+# ─── Браузерные профили ───
+profiles/
+
+# ─── Данные аккаунтов / ставок ───
+data/accounts.json
+data/accounts.tmp.json
+data/wallets.json
+data/wallets.backup.json
+data/used_addresses.json
+data/used_ips.json
+data/emails.txt
+data/blacklist.txt
+data/results.json
+data/scan-checked.jsonl
+data/scan-issues.md
+
+# ─── Бинарники / архивы ───
+*.exe
+*.dll
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# ─── Артефакты автоматизации / дампы / скриншоты ───
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+captured_bet.json
+all_posts.log
+fulllog.txt
+server_log.txt
+*_log.txt
+*.tmp.json
+*.bak
+page_dump.html
+intercept-body.html
+
+# ─── Отладочные/одноразовые скрипты в корне ───
+capture-selection.js
+check-wallets.js
+continue.js
+demo-test.js
+diagnose_selection.js
+fix_betplacer.js
+launcher.js
+launcher.cs
+manual_bet.js
+my_bets.js
+open_browser.js
+tmp_fetch.js
+update_proxy.js
+
+# ─── Прочие заметки ───
+новые правила.md
+
+# ─── ОС / IDE ───
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# ─── Прочее ───
+coverage/
+dist/
+build/

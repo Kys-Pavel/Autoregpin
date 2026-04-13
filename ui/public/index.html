@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinnacle RegBot GUI</title>
+    <link href="style.css?v=3" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar glass-panel">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h2>RegBot</h2>
+            </div>
+
+            <div class="control-group">
+                <label for="currencySelect">Выбор валюты</label>
+                <div class="select-wrapper">
+                    <select id="currencySelect">
+                        <option value="USDT" selected>USDT (Tether)</option>
+                        <option value="USDC">USDC (USD Coin)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="mirrorSelect">Выбор зеркала</label>
+                <div style="display: flex; gap: 8px;">
+                    <div class="select-wrapper" style="flex:1;">
+                        <select id="mirrorSelect">
+                            <option value="">Загрузка...</option>
+                        </select>
+                    </div>
+                    <button id="addMirrorBtn" class="btn-icon"
+                        style="padding: 0 12px; background: rgba(255,255,255,0.05);" title="Добавить зеркало">+</button>
+                    <button id="delMirrorBtn" class="btn-icon"
+                        style="padding: 0 12px; background: rgba(255,50,50,0.15); color: #ff6b6b;"
+                        title="Удалить выбранное зеркало">🗑</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Дополнительно</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <button id="loadEmailsBtn" class="btn-primary" style="background: #4f46e5; flex: 1;">
+                        📥 Загрузить почты (<span id="emailCountDisplay">0</span>)
+                    </button>
+                    <button id="blacklistBtn" class="btn-primary" style="background: #64748b; flex: 1;"
+                        title="Управление Черным Списком">
+                        Список ЧС
+                    </button>
+                </div>
+                <button id="configProxyBtn" class="btn-primary" style="background: #10b981;">
+                    ⚙️ Настроить прокси
+                </button>
+            </div>
+
+            <div class="control-group">
+                <label for="regCountInput">Количество регистраций</label>
+                <input type="number" id="regCountInput" min="1" max="1000" value="1"
+                    style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box;">
+            </div>
+
+            <div class="control-group">
+                <label for="threadCountInput">Потоков (окон Chrome)</label>
+                <input type="number" id="threadCountInput" min="1" max="10" value="1"
+                    style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box;">
+            </div>
+
+            <div class="control-group" style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+                <input type="checkbox" id="useTestEmailCheck" style="width:18px; height:18px; cursor:pointer;">
+                <label for="useTestEmailCheck"
+                    style="cursor:pointer; margin:0; font-size:13px; color: #94a3b8;">&#128736; Использовать случайный
+                    Gmail (пропустить базу email)</label>
+            </div>
+
+            <div class="control-group" style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+                <input type="checkbox" id="keepOpenCheck" style="width:18px; height:18px; cursor:pointer;">
+                <label for="keepOpenCheck" style="cursor:pointer; margin:0; font-size:13px; color: #94a3b8;">&#128065;
+                    Не закрывать после регистрации</label>
+            </div>
+
+            <div class="control-group" style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+                <input type="checkbox" id="keepOpenCheck" style="width:18px; height:18px; cursor:pointer;">
+                <label for="keepOpenCheck" style="cursor:pointer; margin:0; font-size:13px; color: #94a3b8;">&#128065;
+                    Не закрывать браузер после работы</label>
+            </div>
+
+            <div id="keepOpenSecondsGroup" class="control-group" style="display:none; padding: 4px 0;">
+                <label for="keepOpenSecondsInput" style="font-size:12px; color:#94a3b8;">Закрыть через (сек)</label>
+                <input type="number" id="keepOpenSecondsInput" min="5" max="3600" value="600"
+                    style="width:100%; padding:8px 10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; border-radius:6px; box-sizing:border-box;">
+            </div>
+
+            <div class="control-group">
+                <label for="localeSelect">🌍 Страна регистрации</label>
+                <select id="localeSelect"
+                    style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; border-radius:6px; box-sizing:border-box; font-size:13px; cursor:pointer;">
+                    <option value="RU">🇷🇺 Россия (RU)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button id="geminiSettingsBtn" class="btn-primary" style="background: #7c3aed;">
+                    🤖 Настройки Gemini
+                </button>
+            </div>
+
+            <!-- Настройки депозита -->
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0 8px 0;">
+            <div class="control-group" style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+                <input type="checkbox" id="depositEnabledCheck" checked
+                    style="width:18px; height:18px; cursor:pointer; accent-color: #f59e0b;">
+                <label for="depositEnabledCheck"
+                    style="cursor:pointer; margin:0; font-size:13px; color: #f59e0b; font-weight:600;">💰
+                    Автодепозит после регистрации</label>
+            </div>
+
+            <div id="depositSettingsGroup" class="control-group" style="padding: 4px 0;">
+                <label for="depositAmountInput" style="font-size:12px; color:#94a3b8;">Сумма депозита (USDT)</label>
+                <input type="number" id="depositAmountInput" min="1" max="10000" value="20"
+                    style="width:100%; padding:8px 10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:#fbbf24; border-radius:6px; box-sizing:border-box; font-size:14px; font-weight:600;">
+                <p style="font-size:11px; color:var(--text-dim); margin:4px 0 0 0;">Метод: USDT (ERC20). Депозит инициируется автоматически.</p>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0 10px 0;">
+
+            <button id="startBtn" class="btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Запустить Регистрацию
+            </button>
+
+            <button id="stopBtn" class="btn-primary" style="background: #dc2626; margin-top: 6px;">
+                🛑 Остановить / Сбросить запуск
+            </button>
+
+            <!-- Настройки Орбитража -->
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 14px 0 10px 0;">
+            <div class="control-group" style="display: flex; align-items: center; gap: 10px; padding: 4px 0;">
+                <label style="cursor:default; margin:0; font-size:13px; color:#10b981; font-weight:600;">
+                    🎲 Настройки Орбитража (Вилок)
+                </label>
+            </div>
+
+            <div class="control-group" style="display:flex; gap:8px; margin-bottom:8px;">
+                <div style="flex:1;">
+                    <label style="font-size:11px; color:#94a3b8;">Кол-во вилок на аккаунт</label>
+                    <input type="number" id="targetForksInput" value="1" min="1" max="50"
+                        style="width:100%; padding:7px 8px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; border-radius:6px; box-sizing:border-box; font-size:12px;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:11px; color:#94a3b8;">Мин. % прибыли</label>
+                    <input type="number" id="minProfitInput" value="0" step="0.1"
+                        style="width:100%; padding:7px 8px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; border-radius:6px; box-sizing:border-box; font-size:12px;">
+                </div>
+            </div>
+
+            <div class="control-group" style="display:flex; gap:8px; margin-bottom:8px;">
+                <div style="flex:1;">
+                    <label style="font-size:11px; color:#94a3b8;">Интервал проверки розыгрыша (секунды)</label>
+                    <input type="number" id="settlementCheckIntervalInput" value="60" min="5" max="3600"
+                        style="width:100%; padding:7px 8px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; border-radius:6px; box-sizing:border-box; font-size:12px;">
+                </div>
+            </div>
+
+            <button class="btn-primary" style="background: #0d9488; margin-top: 10px;" onclick="window.open('/surebet-calc.html','_blank')">
+                ⚖️ Калькулятор вилок
+            </button>
+
+            <button id="exitBtn" class="btn-primary" style="background: var(--error); margin-top: 10px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                </svg>
+                Выйти (Закрыть сервер)
+            </button>
+
+            <div class="status-indicator">
+                <span id="statusDot" class="dot idle"></span>
+                <span id="statusText">Ожидание...</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Terminal Panel -->
+            <section class="terminal-section glass-panel">
+                <div class="panel-header">
+                    <h3>Терминал</h3>
+                    <button id="clearLogsBtn" class="btn-icon">Очистить</button>
+                </div>
+                <div class="terminal-window" id="terminal">
+                    <div class="log-line system">Подключение к локальному серверу...</div>
+                </div>
+            </section>
+
+            <!-- Wallets Panel -->
+            <section class="wallets-section glass-panel" style="margin-bottom: 16px;">
+                <div class="panel-header">
+                    <h3>💳 Кошельки для депозита</h3>
+                    <div style="display:flex; gap:8px;">
+                        <button id="refreshWalletsBtn" class="btn-icon" title="Обновить без проверки балансов">Обновить</button>
+                        <button id="refreshWalletsBalancesBtn" class="btn-icon" title="Перечитать балансы USDT on-chain (медленно)">Балансы on-chain</button>
+                        <button id="createWalletBtn" class="btn-primary" style="background:#16a34a;">+ Новый кошелёк</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="walletsTable">
+                        <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Адрес для депозита (USDT ERC20)</th>
+                                <th>Баланс (кеш)</th>
+                                <th>Баланс on-chain</th>
+                                <th>Использован</th>
+                                <th>TxHash</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="walletsTbody">
+                            <tr><td colspan="7" style="text-align:center; opacity:.6;">Нажмите «Обновить»</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Accounts Table Panel -->
+            <section class="accounts-section glass-panel">
+                <div class="panel-header">
+                    <h3>Сохраненные аккаунты</h3>
+                    <button id="refreshAccountsBtn" class="btn-icon">Обновить</button>
+                </div>
+                <div class="table-container">
+                    <table id="accountsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Имя / Фамилия</th>
+                                <th>Логин Pinnacle</th>
+                                <th>Email</th>
+                                <th>Пароль</th>
+                                <th>Дата рожд.</th>
+                                <th>Регистрация</th>
+                                <th>IP Reg</th>
+                                <th>Попытки</th>
+                                <th>Статус</th>
+                                <th>Статус CRM</th>
+                                <th>Депозит</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsBody">
+                            <tr>
+                                <td colspan="13" class="empty-state">Нет данных</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3>Детали профиля <span id="modalProfileId" style="color:var(--accent);"></span></h3>
+                <button id="closeModalBtn" class="btn-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalProfileData">
+                <!-- Данные будут генерироваться JS -->
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button id="openBrowserBtn" class="btn-primary" style="background: var(--success);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg>
+                    &nbsp; Открыть в Chrome
+                </button>
+                <button id="copyProfileBtn" class="btn-primary">Копировать всё</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Добавление зеркала -->
+    <div id="mirrorModal" class="modal-overlay">
+        <div class="modal-content glass-panel" style="width: 400px;">
+            <div class="modal-header">
+                <h3>Добавить зеркало</h3>
+                <button id="closeMirrorModal" class="btn-icon">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group">
+                    <label>Короткое имя</label>
+                    <input type="text" id="newMirrorName" placeholder="Zerkalo 1"
+                        style="padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px;">
+                </div>
+                <div class="control-group">
+                    <label>URL (начинается с https://)</label>
+                    <input type="text" id="newMirrorUrl" placeholder="https://..."
+                        style="padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveMirrorBtn" class="btn-primary">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Загрузка почт -->
+    <div id="emailsModal" class="modal-overlay">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3>Массовая загрузка Email</h3>
+                <button id="closeEmailsModal" class="btn-icon">✖</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-dim); margin-top: 0;">Вставьте список email-адресов. Сервер
+                    автоматически удалит дубликаты и проверит по Черному списку зарегистрированных.</p>
+                <textarea id="emailsTextarea" rows="10" placeholder="test1@gmail.com&#10;test2@gmail.com"
+                    style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box; font-family: monospace; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="saveEmailsBtn" class="btn-primary">Добавить в базу</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Настройка Прокси -->
+    <div id="proxyModal" class="modal-overlay">
+        <div class="modal-content glass-panel" style="width: 480px;">
+            <div class="modal-header">
+                <h3>🛡 Настройка Прокси</h3>
+                <button id="closeProxyModal" class="btn-icon">✖</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="background:rgba(100,200,100,0.1); border:1px solid rgba(100,200,100,0.3); border-radius:6px; padding:8px 12px; margin-bottom:12px; font-size:13px;">
+                    🌍 Настройка прокси для страны: <strong id="proxyLocaleLabel" style="color:#6ee7b7;">---</strong>
+                    <span style="color:var(--text-dim); font-size:11px;"> (выбирается по дропдауну страны выше)</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-dim); margin-top: 0;">Сейчас в пуле: <strong
+                        id="proxyActiveCount" style="color:var(--accent);">0</strong> прокси</p>
+                <div class="control-group">
+                    <label>Базовая строка (до порта)</label>
+                    <input type="text" id="proxyBaseString" placeholder="socks5://user:pass@proxy.soax.com:"
+                        style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:1px solid var(--panel-border); color:white; border-radius:6px; box-sizing:border-box; font-family:monospace; font-size:12px;">
+                </div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="control-group" style="flex:1;">
+                        <label>От порта</label>
+                        <input type="number" id="proxyStartPort" placeholder="22000"
+                            style="padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; width:100%; box-sizing:border-box;">
+                    </div>
+                    <div class="control-group" style="flex:1;">
+                        <label>До порта</label>
+                        <input type="number" id="proxyEndPort" placeholder="22500"
+                            style="padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; width:100%; box-sizing:border-box;">
+                    </div>
+                </div>
+                <p style="font-size:12px; color:var(--text-dim);">Пример: базовая строка
+                    <code>socks5://user:pass@host:</code> + порты 22000–22500 = 501 прокси в пуле
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="saveProxyBtn" class="btn-primary">💾 Сгенерировать и сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Настройки Gemini -->
+    <div id="geminiModal" class="modal-overlay">
+        <div class="modal-content glass-panel" style="width: 480px;">
+            <div class="modal-header">
+                <h3>🤖 Настройки Gemini AI</h3>
+                <button id="closeGeminiModal" class="btn-icon">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group">
+                    <label>API Key (Google AI Studio)</label>
+                    <input type="text" id="geminiApiKey" placeholder="AIzaSy..."
+                        style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: #a78bfa; border-radius: 6px; box-sizing: border-box; font-family: monospace;">
+                </div>
+                <div class="control-group">
+                    <label>Модель</label>
+                    <div class="select-wrapper">
+                        <select id="geminiModel"
+                            style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box;">
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (рекомендуется)</option>
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Прокси (необязательно, формат socks5://user:pass@host:port)</label>
+                    <input type="text" id="geminiProxy" placeholder="socks5://..."
+                        style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box; font-family: monospace;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveGeminiBtn" class="btn-primary" style="background: #7c3aed;">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Черный Список -->
+    <div id="blacklistModal" class="modal-overlay">
+        <div class="modal-content glass-panel" style="width: 500px;">
+            <div class="modal-header">
+                <h3>Черный Список (Blacklist)</h3>
+                <button id="closeBlacklistModal" class="btn-icon">✖</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13px; color: var(--text-dim); margin-top: 0;">Поиск по ЧС:</p>
+                <input type="text" id="blacklistSearch" placeholder="Поиск (например test@domain.com)..."
+                    style="width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box;">
+
+                <textarea id="blacklistTextarea" rows="8" readonly
+                    style="width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--panel-border); color: #ef4444; border-radius: 6px; box-sizing: border-box; font-family: monospace; resize: vertical; margin-bottom: 10px;"></textarea>
+
+                <p style="font-size: 13px; color: var(--text-dim); margin-top: 0;">Вручную добавить в ЧС (через запятую
+                    или перенос):</p>
+                <textarea id="blacklistAddTextarea" rows="3" placeholder="email1@icloud.com&#10;email2@icloud.com"
+                    style="width: 100%; padding: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--panel-border); color: white; border-radius: 6px; box-sizing: border-box; font-family: monospace; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <span id="blacklistStats" style="font-size: 12px; color: var(--text-dim);">Загрузка...</span>
+                <button id="saveBlacklistBtn" class="btn-primary" style="background: var(--error);">Добавить в
+                    ЧС</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=10"></script>
+</body>
+
+</html>

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surebet Calculator — Pinnacle RegBot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #1c2230;
+            --border: rgba(255,255,255,0.08);
+            --border2: rgba(255,255,255,0.14);
+            --accent: #58a6ff;
+            --accent2: #a78bfa;
+            --success: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+            --text: #e6edf3;
+            --text-dim: #8b949e;
+            --text-faint: #484f58;
+            --profit-color: #3fb950;
+            --loss-color: #f85149;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .header-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #58a6ff, #a78bfa);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .header h1 { font-size: 20px; font-weight: 700; }
+        .header .sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+        .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+        /* ─── SECTION TITLE ─── */
+        .section-label {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+            text-transform: uppercase; color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        /* ─── FEED INPUT ─── */
+        .feed-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+        .feed-row {
+            display: flex; gap: 10px; align-items: flex-end;
+        }
+        .feed-row textarea {
+            flex: 1;
+            height: 80px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            resize: none;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .feed-row textarea:focus { border-color: var(--accent); }
+        .feed-row textarea::placeholder { color: var(--text-faint); }
+
+        .btn {
+            padding: 10px 18px;
+            border: none; border-radius: 8px;
+            font-family: inherit; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all .15s; white-space: nowrap;
+        }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .btn-ghost {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border2); color: var(--text);
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+        .btn-danger { background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.3); color: #f85149; }
+        .btn-danger:hover { background: rgba(248,81,73,0.25); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* ─── CALC SETTINGS BAR ─── */
+        .settings-bar {
+            display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+        }
+        .settings-bar label { font-size: 12px; color: var(--text-dim); }
+        .settings-bar input[type="number"] {
+            width: 90px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid var(--border2);
+            border-radius: 6px; color: var(--text);
+            padding: 7px 10px; font-size: 13px; font-weight: 600;
+            font-family: inherit; outline: none;
+            transition: border-color .2s;
+        }
+        .settings-bar input[type="number"]:focus { border-color: var(--accent); }
+        .settings-sep { width: 1px; height: 28px; background: var(--border2); }
+        .settings-bar .label-group { display: flex; flex-direction: column; gap: 4px; }
+        .balance-display {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(63,185,80,0.1);
+            border: 1px solid rgba(63,185,80,0.25);
+            border-radius: 8px; padding: 8px 14px;
+        }
+        .balance-display .bal-label { font-size: 11px; color: var(--text-dim); }
+        .balance-display .bal-val { font-size: 16px; font-weight: 700; color: var(--success); }
+        .balance-display .bal-cur { font-size: 12px; color: var(--text-dim); }
+
+        /* ─── SUREBET CARDS ─── */
+        .cards-area { display: flex; flex-direction: column; gap: 14px; }
+
+        .surebet-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+        .surebet-card:hover { border-color: var(--border2); }
+        .surebet-card.is-arb { border-color: rgba(63,185,80,0.4); }
+        .surebet-card.is-loss { border-color: rgba(248,81,73,0.2); }
+
+        /* card header */
+        .card-head {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; row-gap: 6px;
+        }
+        .card-sport-badge {
+            font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 4px; border: 1px solid;
+        }
+        .badge-basketball { background: rgba(255,166,0,0.12); border-color: rgba(255,166,0,0.4); color: #ffa500; }
+        .badge-soccer { background: rgba(63,185,80,0.12); border-color: rgba(63,185,80,0.4); color: #3fb950; }
+        .badge-tennis { background: rgba(88,166,255,0.12); border-color: rgba(88,166,255,0.4); color: #58a6ff; }
+        .badge-default { background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.4); color: #a78bfa; }
+
+        .card-match { font-size: 14px; font-weight: 600; }
+        .card-league { font-size: 12px; color: var(--text-dim); }
+        .card-meta { font-size: 11px; color: var(--text-faint); margin-left: auto; text-align: right; line-height: 1.5; }
+
+        .profit-badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;
+            white-space: nowrap;
+        }
+        .profit-badge.green { background: rgba(63,185,80,0.15); color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+        .profit-badge.red { background: rgba(248,81,73,0.1); color: #f85149; border: 1px solid rgba(248,81,73,0.2); }
+
+        /* card body = calculator rows */
+        .card-body {
+            padding: 14px 16px;
+        }
+
+        /* ─── CALC TABLE ─── */
+        .calc-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .calc-table th {
+            font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+            text-transform: uppercase; color: var(--text-dim);
+            padding: 0 10px 8px 0; text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .calc-table td {
+            padding: 8px 10px 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            vertical-align: middle;
+            font-size: 13px;
+        }
+        .calc-table tr:last-child td { border-bottom: none; }
+
+        .side-label { font-weight: 600; }
+        .side-home { color: #58a6ff; }
+        .side-away { color: #a78bfa; }
+        .side-draw { color: #ffa500; }
+
+        .odds-input {
+            width: 72px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            color: var(--text);
+            padding: 6px 8px;
+            font-size: 13px; font-weight: 600;
+            font-family: inherit; outline: none; text-align: center;
+            transition: border-color .2s;
+        }
+        .odds-input:focus { border-color: var(--accent); }
+
+        .stake-input {
+            width: 90px;
+            background: rgba(88,166,255,0.08);
+            border: 1px solid rgba(88,166,255,0.25);
+            border-radius: 6px;
+            color: #fff;
+            padding: 6px 8px;
+            font-size: 13px; font-weight: 700;
+            font-family: inherit; outline: none; text-align: center;
+            transition: border-color .2s;
+        }
+        .stake-input:focus { border-color: var(--accent); }
+
+        .profit-val {
+            font-size: 13px; font-weight: 700;
+            min-width: 60px;
+        }
+        .profit-val.pos { color: var(--success); }
+        .profit-val.neg { color: var(--error); }
+
+        .pct-badge {
+            font-size: 11px; font-weight: 600;
+            border-radius: 4px; padding: 2px 6px;
+        }
+        .pct-badge.pos { background: rgba(63,185,80,0.15); color: #3fb950; }
+        .pct-badge.neg { background: rgba(248,81,73,0.1); color: #f85149; }
+
+        /* ─── TOTALS ROW ─── */
+        .totals-row {
+            display: flex; gap: 10px; align-items: center;
+            padding: 10px 0 2px 0;
+            border-top: 1px solid var(--border);
+            margin-top: 8px; flex-wrap: wrap;
+        }
+        .totals-row .tot-item {
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .totals-row .tot-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; }
+        .totals-row .tot-val { font-size: 15px; font-weight: 700; }
+
+        /* ─── WHAT'S NEEDED BOX ─── */
+        .need-box {
+            background: linear-gradient(135deg, rgba(88,166,255,0.06) 0%, rgba(167,139,250,0.06) 100%);
+            border: 1px solid rgba(88,166,255,0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .need-box h2 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--accent); }
+        .need-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 10px;
+        }
+        .need-item {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+        .need-item .ni-title {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .05em; color: var(--accent2); margin-bottom: 4px;
+        }
+        .need-item .ni-val { font-size: 12px; color: var(--text); font-family: monospace; }
+        .need-item .ni-hint { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+        /* ─── STATUS BAR ─── */
+        .status-bar {
+            display: flex; gap: 8px; align-items: center;
+            font-size: 12px; color: var(--text-dim);
+            margin-bottom: 14px;
+        }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: var(--text-dim);
+        }
+        .empty-state .big-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+        .empty-state p { font-size: 13px; max-width: 420px; margin: 0 auto; line-height: 1.6; }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* ─── NOTIFICATION ─── */
+        .notif {
+            position: fixed; top: 16px; right: 16px;
+            background: var(--surface2); border: 1px solid var(--border2);
+            border-radius: 10px; padding: 12px 16px;
+            font-size: 13px; z-index: 1000;
+            transform: translateX(200%); transition: transform .3s ease;
+            max-width: 320px;
+        }
+        .notif.show { transform: translateX(0); }
+        .notif.ok { border-color: rgba(63,185,80,0.4); }
+        .notif.err { border-color: rgba(248,81,73,0.4); }
+
+        /* HDP badge */
+        .bet-type-badge {
+            font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
+            background: rgba(255,255,255,0.07); color: var(--text-dim); border: 1px solid var(--border2);
+        }
+        .hcp-label { font-size: 11px; color: #ffa500; font-weight: 600; }
+
+        /* nav tabs */
+        .nav-tabs {
+            display: flex; gap: 4px; margin-bottom: 20px;
+        }
+        .nav-tab {
+            padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: 1px solid var(--border); color: var(--text-dim);
+            background: transparent; transition: all .15s;
+        }
+        .nav-tab.active {
+            background: var(--accent); color: #000; border-color: transparent;
+        }
+        .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-logo">⚖️</div>
+    <div>
+        <h1>Surebet Calculator</h1>
+        <div class="sub">Расчёт ставок вилочника — Pinnacle RegBot</div>
+    </div>
+    <div class="header-right">
+        <button class="btn btn-ghost btn-sm" onclick="window.location.href='/'">← RegBot GUI</button>
+    </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('calc')">🧮 Калькулятор</button>
+    <button class="nav-tab" onclick="switchTab('info')">📋 Что нужно для ставки</button>
+</div>
+
+<!-- TAB: CALCULATOR -->
+<div id="tab-calc">
+
+    <!-- SETTINGS BAR -->
+    <div class="settings-bar">
+        <div class="label-group">
+            <label>💰 Общая сумма для ставок (USDT)</label>
+            <input type="number" id="totalBankroll" value="100" min="1" step="1" oninput="recalcAll()">
+        </div>
+        <div class="settings-sep"></div>
+        <div class="label-group">
+            <label>🎯 Мин. прибыль для ставки (%)</label>
+            <input type="number" id="minProfit" value="0" min="-20" max="100" step="0.1" oninput="recalcAll()">
+        </div>
+        <div class="settings-sep"></div>
+        <div class="label-group">
+            <label>📊 Округление ставки до</label>
+            <input type="number" id="roundTo" value="1" min="0.01" step="0.01" oninput="recalcAll()">
+        </div>
+        <div class="balance-display">
+            <div>
+                <div class="bal-label">Баланс на счёте</div>
+                <div><span class="bal-val" id="balanceVal">—</span> <span class="bal-cur">USDT</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON FEED INPUT -->
+    <div class="feed-panel">
+        <div class="section-label">Вставьте JSON с суребетами (поле "surebets": [...])</div>
+        <div class="feed-row">
+            <textarea id="jsonInput" placeholder='{"surebets": [{"eventId": 123, "sport": "Basketball", "match": "Команда А vs Команда Б", "betType": "HDP", "handicap": "0", "profitPct": 2.5, "prices": {"HOME": 2.23, "AWAY": 1.9}}]}'></textarea>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <button class="btn btn-primary" onclick="parseAndRender()">▶ Загрузить</button>
+                <button class="btn btn-ghost btn-sm" onclick="loadDemo()">📥 Демо</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAll()">🗑 Очистить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-bar" id="statusBar" style="display:none;">
+        <div class="status-dot"></div>
+        <span id="statusText"></span>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards-area" id="cardsArea">
+        <div class="empty-state">
+            <div class="big-icon">⚖️</div>
+            <h3>Калькулятор вилок</h3>
+            <p>Вставьте JSON с суребетами выше и нажмите «Загрузить». Калькулятор автоматически распределит сумму по плечам для оптимальной доходности.</p>
+        </div>
+    </div>
+</div>
+
+<!-- TAB: WHAT'S NEEDED -->
+<div id="tab-info" style="display:none;">
+    <div class="need-box">
+        <h2>📋 Что нужно иметь для проставки ставок на Pinnacle</h2>
+        <div class="need-grid">
+
+            <div class="need-item">
+                <div class="ni-title">eventId</div>
+                <div class="ni-val">1626892236</div>
+                <div class="ni-hint">ID события Pinnacle. Нужен для построения URL ставки или API запроса. <b>Уже есть в JSON.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">betType</div>
+                <div class="ni-val">HDP / MONEYLINE / TOTALS</div>
+                <div class="ni-hint">Тип ставки: HDP = гандикап, MONEYLINE = победитель, TOTALS = тотал. <b>Уже есть в JSON.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">period</div>
+                <div class="ni-val">"0" = матч, "1" = 1-й тайм</div>
+                <div class="ni-hint">На какой период ставка. <b>Уже есть в JSON.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">side (HOME / AWAY / OVER / UNDER)</div>
+                <div class="ni-val">HOME или AWAY</div>
+                <div class="ni-hint">На какое плечо ставить. Выбирается из prices в JSON. <b>Уже есть в JSON.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">handicap / hdp / altLineId</div>
+                <div class="ni-val">"0", "-1.5", "+0.5"</div>
+                <div class="ni-hint">Значение гандикапа. Для MONEYLINE = 0. <b>Уже есть в JSON.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">price (odds)</div>
+                <div class="ni-val">1.952 / 1.8</div>
+                <div class="ni-hint">Коэффициент, по которому ставим. Нужно 100% совпадение с текущим на сайте — иначе ставка отклоняется. <b>Уже есть в JSON.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">stake (сумма ставки)</div>
+                <div class="ni-val">50.00 USDT</div>
+                <div class="ni-hint">Сумма ставки рассчитывается калькулятором. <b>Генерируется калькулятором.</b></div>
+            </div>
+
+            <div class="need-item" style="border-color: rgba(248,81,73,0.35);">
+                <div class="ni-title" style="color:#f85149;">⚠️ username / password</div>
+                <div class="ni-val">loginId + password из accounts.json</div>
+                <div class="ni-hint">Логин и пароль аккаунта Pinnacle. <b>Нужно добавить в скрипт ставки.</b> Берётся из data/accounts.json.</div>
+            </div>
+
+            <div class="need-item" style="border-color: rgba(248,81,73,0.35);">
+                <div class="ni-title" style="color:#f85149;">⚠️ mirror URL (зеркало)</div>
+                <div class="ni-val">https://thundercrest65.xyz</div>
+<div class="ni-hint">Ссылка на зеркало где авторизован аккаунт. Каждый аккаунт авторизован на своём зеркале. <b>Нужно добавить в скрипт ставки.</b></div>
+            </div>
+
+            <div class="need-item" style="border-color: rgba(248,81,73,0.35);">
+                <div class="ni-title" style="color:#f85149;">⚠️ sessionToken / cookies</div>
+                <div class="ni-val">session cookie после логина</div>
+                <div class="ni-hint">Pinnacle API требует авторизацию. Puppeteer должен залогиниться и держать сессию. <b>Нужно реализовать.</b></div>
+            </div>
+
+            <div class="need-item" style="border-color: rgba(248,81,73,0.35);">
+                <div class="ni-title" style="color:#f85149;">⚠️ betslipId / uniqueRequestId</div>
+                <div class="ni-val">UUID генерируется на каждую ставку</div>
+                <div class="ni-hint">Pinnacle API может требовать уникальный идентификатор на каждый бетслип. <b>Генерируется при POST /bets.</b></div>
+            </div>
+
+            <div class="need-item">
+                <div class="ni-title">deposit balance (баланс)</div>
+                <div class="ni-val">USDT ERC20</div>
+                <div class="ni-hint">Баланс уже пополнен через модуль depositor.js. Ставки ставятся от этого баланса. <b>Уже реализовано.</b></div>
+            </div>
+        </div>
+
+        <div style="margin-top:18px; padding: 14px; background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2); border-radius: 10px;">
+            <b style="color: var(--accent);">📌 Итог: какой JSON нужно передать в скрипт ставки</b>
+            <pre style="margin-top:10px; font-size:12px; color: #8b949e; background: rgba(0,0,0,0.4); padding: 12px; border-radius:8px; overflow-x: auto;">{
+  "accountId":    3,                    // из accounts.json
+  "loginId":      "myuser123",          // из accounts.json  
+  "password":     "Pass123!",           // из accounts.json
+  "mirrorUrl":    "https://thunder...", // зеркало с сессией
+  "eventId":      1626892236,           // из surebets JSON ✅
+  "betType":      "HDP",                // из surebets JSON ✅
+  "period":       "4",                  // из surebets JSON ✅
+  "side":         "HOME",               // выбирается калькулятором ✅
+  "handicap":     "0",                  // из surebets JSON ✅
+  "price":        1.952,                // из surebets JSON ✅
+  "stake":        50.00,                // из калькулятора ✅  
+  "currency":     "USDT"               // из config.json ✅
+}</pre>
+        </div>
+    </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+    document.getElementById('tab-calc').style.display = name === 'calc' ? '' : 'none';
+    document.getElementById('tab-info').style.display = name === 'info' ? '' : 'none';
+    document.querySelectorAll('.nav-tab').forEach((t,i) => {
+        t.classList.toggle('active', (i===0 && name==='calc') || (i===1 && name==='info'));
+    });
+}
+
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+let surebets = [];
+
+// ─────────────────────────────────────────────────────────────
+// PARSE & RENDER
+// ─────────────────────────────────────────────────────────────
+function parseAndRender() {
+    const raw = document.getElementById('jsonInput').value.trim();
+    if (!raw) { showNotif('Вставьте JSON', 'err'); return; }
+
+    let data;
+    try {
+        data = JSON.parse(raw);
+    } catch (e) {
+        showNotif('Ошибка парсинга JSON: ' + e.message, 'err');
+        return;
+    }
+
+    // Accept both { surebets: [...] } and plain [...]
+    if (Array.isArray(data)) surebets = data;
+    else if (data.surebets && Array.isArray(data.surebets)) surebets = data.surebets;
+    else { showNotif('JSON не содержит поле "surebets" с массивом', 'err'); return; }
+
+    recalcAll();
+    showNotif(`Загружено ${surebets.length} суребет(ов)`, 'ok');
+}
+
+function recalcAll() {
+    if (!surebets.length) { renderEmpty(); return; }
+
+    const bankroll   = parseFloat(document.getElementById('totalBankroll').value) || 100;
+    const minProfit  = parseFloat(document.getElementById('minProfit').value) || 0;
+    const roundTo    = parseFloat(document.getElementById('roundTo').value) || 1;
+
+    // Update fake balance display
+    document.getElementById('balanceVal').textContent = bankroll.toFixed(2);
+
+    const area = document.getElementById('cardsArea');
+    area.innerHTML = '';
+
+    let shownCount = 0;
+
+    surebets.forEach((sb, idx) => {
+        const prices = sb.prices || {};
+        const sides  = Object.keys(prices);
+        if (!sides.length) return;
+
+        // ─── Calculate arbitrage ───
+        const invSum = sides.reduce((sum, s) => sum + 1 / prices[s], 0);
+        const margin = invSum; // < 1 = true arb
+        const profitPctCalc = (1 / invSum - 1) * 100;
+        const isArb = profitPctCalc > minProfit;
+
+        // ─── Stake distribution ───
+        // For 2-way: stake_i = (bankroll / odds_i) / sum(1/odds_j)
+        const stakes = {};
+        sides.forEach(s => {
+            const rawStake = (bankroll / prices[s]) / invSum;
+            stakes[s] = roundStake(rawStake, roundTo);
+        });
+        const totalStake = sides.reduce((sum, s) => sum + stakes[s], 0);
+        const profitIfWin = sides.map(s => stakes[s] * prices[s] - totalStake);
+
+        // ─── Build card ───
+        const card = document.createElement('div');
+        card.className = `surebet-card ${isArb ? 'is-arb' : 'is-loss'}`;
+
+        const sportBadgeClass = getSportBadge(sb.sport);
+        const elapsed   = sb.elapsed || '';
+        const settle    = sb.settleEstimate || '';
+        const betType   = sb.betType || 'MONEYLINE';
+        const hdp       = sb.handicap !== undefined && sb.handicap !== null ? sb.handicap : '';
+        const score     = sb.score || '';
+
+        card.innerHTML = `
+<div class="card-head">
+    <span class="card-sport-badge ${sportBadgeClass}">${sb.sport || 'Unknown'}</span>
+    <span class="bet-type-badge">${betType}${hdp !== '' ? ' ' + (hdp >= 0 ? '+' : '') + hdp : ''}</span>
+    <div>
+        <div class="card-match">${sb.match || 'Event #' + sb.eventId}</div>
+        <div class="card-league">${sb.league || ''} ${score ? '· ' + score : ''}</div>
+    </div>
+    <span class="profit-badge ${isArb ? 'green' : 'red'}">
+        ${profitPctCalc >= 0 ? '+' : ''}${profitPctCalc.toFixed(2)}%
+    </span>
+    <div class="card-meta">
+        ${elapsed ? `⏱ ${elapsed}` : ''}<br>
+        ${settle ? `🏁 ${settle}` : ''}
+    </div>
+</div>
+<div class="card-body">
+    <table class="calc-table">
+        <thead>
+            <tr>
+                <th>Плечо</th>
+                <th>Коэф</th>
+                <th>Ставка (USDT)</th>
+                <th>Доход</th>
+                <th>%</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${sides.map((s, i) => {
+                const profit = profitIfWin[i];
+                const pct = totalStake > 0 ? (profit / totalStake * 100) : 0;
+                const sideLabel = s === 'HOME' ? 'Хозяева' : s === 'AWAY' ? 'Гости' : s === 'DRAW' ? 'Ничья' : s;
+                const sideClass = s === 'HOME' ? 'side-home' : s === 'AWAY' ? 'side-away' : 'side-draw';
+                return `
+                <tr>
+                    <td><span class="side-label ${sideClass}">${s}</span> <span style="color:var(--text-dim);font-size:12px;">${sideLabel}</span></td>
+                    <td>
+                        <input class="odds-input" type="number" step="0.01" min="1"
+                            value="${prices[s].toFixed(3)}"
+                            oninput="updateOdds(${idx}, '${s}', this.value)"
+                        >
+                    </td>
+                    <td>
+                        <input class="stake-input" type="number" step="${roundTo}" min="0"
+                            value="${stakes[s].toFixed(2)}"
+                            oninput="updateStake(${idx}, '${s}', this.value, this)"
+                        >
+                    </td>
+                    <td class="profit-val ${profit >= 0 ? 'pos' : 'neg'}">${profit >= 0 ? '+' : ''}${profit.toFixed(2)}</td>
+                    <td><span class="pct-badge ${pct >= 0 ? 'pos' : 'neg'}">${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%</span></td>
+                </tr>`;
+            }).join('')}
+        </tbody>
+    </table>
+
+    <div class="totals-row">
+        <div class="tot-item">
+            <div class="tot-label">Итого ставок</div>
+            <div class="tot-val">${totalStake.toFixed(2)} <span style="font-size:12px;color:var(--text-dim);">USDT</span></div>
+        </div>
+        <div style="width:1px;height:30px;background:var(--border);margin:0 6px;"></div>
+        <div class="tot-item">
+            <div class="tot-label">Маржа инверс</div>
+            <div class="tot-val" style="color:${invSum < 1 ? 'var(--success)' : 'var(--error)'};">${(invSum * 100).toFixed(2)}%</div>
+        </div>
+        <div style="width:1px;height:30px;background:var(--border);margin:0 6px;"></div>
+        <div class="tot-item">
+            <div class="tot-label">Мин доход</div>
+            <div class="tot-val ${isArb ? 'pos' : 'neg'}" style="color:${isArb ? 'var(--success)' : 'var(--error)'};">
+                ${profitPctCalc >= 0 ? '+' : ''}${profitPctCalc.toFixed(2)}%
+            </div>
+        </div>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="placeBetPrompt(${idx})">📋 Данные ставки</button>
+        </div>
+    </div>
+</div>`;
+        area.appendChild(card);
+        shownCount++;
+    });
+
+    if (!shownCount) {
+        area.innerHTML = `<div class="empty-state" style="padding:30px 20px;">
+            <div class="big-icon">🔍</div>
+            <h3>Нет данных для отображения</h3>
+            <p>Убедитесь что JSON содержит суребеты с полем prices</p>
+        </div>`;
+    }
+
+    // status
+    const statusBar = document.getElementById('statusBar');
+    const arbCount = surebets.filter(sb => {
+        const prices = sb.prices || {};
+        const sides = Object.keys(prices);
+        if (!sides.length) return false;
+        const invSum = sides.reduce((s, k) => s + 1 / prices[k], 0);
+        return (1 / invSum - 1) * 100 > minProfit;
+    }).length;
+
+    statusBar.style.display = 'flex';
+    document.getElementById('statusText').textContent =
+        `Всего суребет: ${surebets.length} | Выгодных (>${minProfit}%): ${arbCount} | Общая сумма: ${bankroll} USDT`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// UPDATE ODDS (manual edit → recalc stakes)
+// ─────────────────────────────────────────────────────────────
+function updateOdds(idx, side, val) {
+    const odds = parseFloat(val);
+    if (!odds || odds < 1) return;
+    if (!surebets[idx] || !surebets[idx].prices) return;
+    surebets[idx].prices[side] = odds;
+    recalcAll();
+}
+
+function updateStake(idx, side, val, el) {
+    // Manual stake edit — just recalc profit display for this row
+    // Without full recalc (user is manually distributing)
+    const stake = parseFloat(val) || 0;
+    // Find card row and update profit cell
+    const td = el.closest('tr');
+    if (!td) return;
+    const odds = parseFloat(td.querySelector('.odds-input').value);
+    // Sum all stakes in this card
+    const cardBody = el.closest('.card-body');
+    if (!cardBody) return;
+    const stakeInputs = cardBody.querySelectorAll('.stake-input');
+    let totalS = 0;
+    stakeInputs.forEach(inp => totalS += parseFloat(inp.value) || 0);
+    // Update profits
+    stakeInputs.forEach((inp, i) => {
+        const s = parseFloat(inp.value) || 0;
+        const o = parseFloat(inp.closest('tr').querySelector('.odds-input').value) || 1;
+        const profit = s * o - totalS;
+        const pct = totalS > 0 ? profit / totalS * 100 : 0;
+        const profitTd = inp.closest('tr').querySelector('.profit-val');
+        const pctTd = inp.closest('tr').querySelector('.pct-badge');
+        if (profitTd) {
+            profitTd.textContent = (profit >= 0 ? '+' : '') + profit.toFixed(2);
+            profitTd.className = 'profit-val ' + (profit >= 0 ? 'pos' : 'neg');
+        }
+        if (pctTd) {
+            pctTd.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+            pctTd.className = 'pct-badge ' + (pct >= 0 ? 'pos' : 'neg');
+        }
+    });
+    // Update totals
+    const totVals = cardBody.querySelectorAll('.tot-val');
+    if (totVals[0]) totVals[0].innerHTML = totalS.toFixed(2) + ' <span style="font-size:12px;color:var(--text-dim);">USDT</span>';
+}
+
+// ─────────────────────────────────────────────────────────────
+// PLACE BET PROMPT
+// ─────────────────────────────────────────────────────────────
+function placeBetPrompt(idx) {
+    const sb = surebets[idx];
+    if (!sb) return;
+
+    const prices = sb.prices || {};
+    const sides  = Object.keys(prices);
+    const bankroll = parseFloat(document.getElementById('totalBankroll').value) || 100;
+    const roundTo  = parseFloat(document.getElementById('roundTo').value) || 1;
+    const invSum   = sides.reduce((s, k) => s + 1 / prices[k], 0);
+    const stakes   = {};
+    sides.forEach(s => { stakes[s] = roundStake((bankroll / prices[s]) / invSum, roundTo); });
+
+    const lines = sides.map(s => JSON.stringify({
+        eventId:   sb.eventId,
+        betType:   sb.betType || 'MONEYLINE',
+        period:    sb.period || '0',
+        side:      s,
+        handicap:  sb.handicap || '0',
+        price:     prices[s],
+        stake:     stakes[s],
+        currency:  'USDT',
+        match:     sb.match,
+        // placeholders — нужно подставить из accounts.json:
+        accountId: '???',
+        loginId:   '???',
+        password:  '???',
+        mirrorUrl: '???'
+    }, null, 2));
+
+    const win = window.open('', '_blank', 'width=620,height=500');
+    win.document.write(`<html><body style="background:#0d1117;color:#e6edf3;font-family:monospace;padding:20px;">
+        <h3 style="color:#58a6ff;margin-bottom:16px;">📋 Данные для ставок: ${sb.match}</h3>
+        <p style="color:#8b949e;font-size:13px;margin-bottom:12px;">Замените ??? на данные из accounts.json</p>
+        ${lines.map((l, i) => `
+            <div style="margin-bottom:14px;">
+                <div style="color:#a78bfa;font-size:12px;margin-bottom:6px;">Плечо ${sides[i]} (ставка ${stakes[sides[i]].toFixed(2)} USDT @ ${prices[sides[i]].toFixed(3)})</div>
+                <pre style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;overflow-x:auto;margin:0;font-size:12px;border:1px solid rgba(255,255,255,0.08);">${l}</pre>
+            </div>`).join('')}
+    </body></html>`);
+}
+
+// ─────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────
+function roundStake(val, roundTo) {
+    if (!roundTo || roundTo <= 0) return val;
+    return Math.floor(val / roundTo) * roundTo;
+}
+
+function getSportBadge(sport) {
+    if (!sport) return 'badge-default';
+    const s = sport.toLowerCase();
+    if (s.includes('basketball')) return 'badge-basketball';
+    if (s.includes('soccer') || s.includes('football')) return 'badge-soccer';
+    if (s.includes('tennis')) return 'badge-tennis';
+    return 'badge-default';
+}
+
+function renderEmpty() {
+    document.getElementById('cardsArea').innerHTML = `
+        <div class="empty-state">
+            <div class="big-icon">⚖️</div>
+            <h3>Калькулятор вилок</h3>
+            <p>Вставьте JSON с суребетами и нажмите «Загрузить».</p>
+        </div>`;
+}
+
+function clearAll() {
+    surebets = [];
+    document.getElementById('jsonInput').value = '';
+    document.getElementById('statusBar').style.display = 'none';
+    renderEmpty();
+}
+
+function showNotif(msg, type = 'ok') {
+    const el = document.getElementById('notif');
+    el.textContent = (type === 'ok' ? '✅ ' : '❌ ') + msg;
+    el.className = 'notif ' + type + ' show';
+    setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEMO DATA
+// ─────────────────────────────────────────────────────────────
+function loadDemo() {
+    const demo = {
+        surebets: [
+            {
+                eventId: 1626892236,
+                sport: "Basketball",
+                league: "Turkey - Super League Women",
+                match: "Emlak Konut SK vs Galatasaray",
+                period: "4",
+                betType: "HDP",
+                handicap: "0",
+                profitPct: 2.59,
+                prices: { HOME: 2.23, AWAY: 1.9 },
+                elapsed: "1st Quarter - 1'",
+                settleEstimate: "End of Q4",
+                score: "12:8"
+            },
+            {
+                eventId: 1626902189,
+                sport: "Soccer",
+                league: "Saudi Arabia MOS Cup",
+                match: "Al Nasr vs Al-Ittihad Jeddah",
+                period: "0",
+                betType: "MONEYLINE",
+                handicap: "0",
+                profitPct: 1.12,
+                prices: { HOME: 2.1, DRAW: 3.4, AWAY: 3.8 },
+                elapsed: "35'",
+                settleEstimate: "Full Time",
+                score: "0:0"
+            },
+            {
+                eventId: 1626999999,
+                sport: "Tennis",
+                league: "WTA Miami Open",
+                match: "Swiatek I. vs Gauff C.",
+                period: "0",
+                betType: "MONEYLINE",
+                handicap: "0",
+                profitPct: -1.5,
+                prices: { HOME: 1.45, AWAY: 2.9 },
+                elapsed: "Set 1 - 3:2",
+                settleEstimate: "End of Match"
+            }
+        ]
+    };
+    document.getElementById('jsonInput').value = JSON.stringify(demo, null, 2);
+    parseAndRender();
+}
+</script>
+
+</body>
+</html>
