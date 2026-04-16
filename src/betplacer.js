@@ -516,7 +516,6 @@ async function placeMultipleBets(page, sb, stakesMap) {
     const sport = sportMap[(sb.sport || '').toLowerCase()] || 'basketball';
     const liveUrl = `${base}/en/compact/sports/${sport}/live?lang=en`;
 
-    // Проверяем текущий URL — если уже на нужной странице, не перезагружаем
     const curUrl = page.url();
     if (!curUrl.includes(`/${sport}/live`)) {
         log(`  🌐 Переход: ${liveUrl}`);
@@ -533,7 +532,18 @@ async function placeMultipleBets(page, sb, stakesMap) {
     }, String(eventId)).catch(() => false);
 
     if (!eventOnPage) {
-        warn(`  ❌ Event ${eventId} не найден на странице live ${sport}`);
+        // Диагностика: какие ID вообще лежат на странице — покажет реальный формат
+        const idSample = await page.evaluate((eid) => {
+            const all = [...document.querySelectorAll('[id], [data-id]')]
+                .map(el => el.id || el.getAttribute('data-id') || '')
+                .filter(s => s && /\d{6,}/.test(s) && !/^[a-z-]+$/i.test(s));
+            const unique = [...new Set(all)];
+            const containsEid = unique.filter(s => s.includes(String(eid)));
+            return { total: unique.length, first10: unique.slice(0, 10), containsEid: containsEid.slice(0, 5) };
+        }, String(eventId)).catch(() => ({ total: 0, first10: [], containsEid: [] }));
+        warn(`  ❌ Event ${eventId} не найден. ID на странице всего: ${idSample.total}`);
+        warn(`     Примеры: ${JSON.stringify(idSample.first10)}`);
+        warn(`     Содержат ${eventId}: ${JSON.stringify(idSample.containsEid)}`);
         sides.forEach(s => { finalResults[s] = { success: false, reason: 'event_not_on_page' }; });
         return finalResults;
     }

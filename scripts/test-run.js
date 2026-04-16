@@ -275,6 +275,14 @@ async function main() {
         console.log(`📧 ${T} Доступно email-адресов для потока: ${availableEmails.length} (из ${filtered.length} уникальных)`);
     }
 
+    // Пред-проверка: если не тест-режим и почт не хватает на запрошенное regCount — останавливаем поток.
+    // Better to fail fast, чем плодить аккаунты на случайных gmail.
+    if (!useTestEmail && availableEmails.length < regCount) {
+        console.error(`❌ ${T} Недостаточно email для регистрации: есть ${availableEmails.length}, нужно ${regCount}.`);
+        console.error(`   Пополни data/emails.txt или уменьши regCount. Поток остановлен.`);
+        return;
+    }
+
     const screenshotsDir = path.resolve(__dirname, '..', 'screenshots');
     if (!fs.existsSync(screenshotsDir)) fs.mkdirSync(screenshotsDir, { recursive: true });
 
